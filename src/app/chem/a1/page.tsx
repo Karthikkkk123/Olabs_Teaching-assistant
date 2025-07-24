@@ -13,6 +13,7 @@ export default function ProjectileMotionPage() {
           <h2 className="text-2xl md:text-3xl font-semibold font-headline mb-4 border-b pb-2">Projectile Motion Simulation</h2>
           <p className="mb-4 text-lg leading-relaxed">
             This simulation allows you to experiment with projectile motion. You can adjust the initial velocity, angle, and gravitational force to see how they affect the trajectory of an object.
+            Projectile motion is the motion of an object that is thrown or projected into the air and is subject only to acceleration due to gravity (assuming air resistance is negligible). The object is called a projectile, and its path is known as a trajectory.
           </p>
           <p className="mb-4 text-lg leading-relaxed">
             This is a fundamental concept in classical mechanics and our simulation makes it easy to visualize and understand the path of a projectile.
