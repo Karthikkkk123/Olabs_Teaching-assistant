@@ -18,7 +18,7 @@ export default function PhysicsPage() {
           </p>
           <p className="mb-4 text-lg leading-relaxed">
             One of the key topics covered is mechanics. We have detailed simulations on{' '}
-            <Link href="/physics/projectile-motion" className="text-primary font-semibold hover:underline">
+            <Link href="/chem/a1" className="text-primary font-semibold hover:underline">
               projectile motion
             </Link>
             , where you can experiment with different initial velocities, angles,
