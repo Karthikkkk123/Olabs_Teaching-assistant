@@ -47,7 +47,7 @@ export default function ChatWidget() {
     const getGreeting = async () => {
       setIsLoading(true);
       try {
-        const pageContent = document.body.innerText;
+        const webpageContent = document.body.innerText;
         const webpageUrl = window.location.href;
         const { greeting } = await contextualGreeting({
           webpageContent,
