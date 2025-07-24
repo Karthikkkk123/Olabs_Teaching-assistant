@@ -19,7 +19,7 @@ export default function Home() {
           </p>
           <p className="mb-4 text-lg leading-relaxed">
             We have detailed simulations on many topics. Check out our{' '}
-            <Link href="/physics" className="text-primary font-semibold hover:underline">
+            <Link href="/chem" className="text-primary font-semibold hover:underline">
               Physics Simulations
             </Link>
             .
