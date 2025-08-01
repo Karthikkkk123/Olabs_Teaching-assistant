@@ -34,32 +34,44 @@ const LoadingDots = () => (
 );
 
 const renderMessageContent = (content: string) => {
-  const linkRegex = /(?:(\d+\.\s.*)\n\s*(https?:\/\/[^\s]+))/g;
-  const parts = content.split(linkRegex);
-  const elements = [];
+  // Regex to capture the title on one line and the URL on the next
+  const linkRegex = /(\d+\.\s.*)\n\s*(https?:\/\/[^\s]+)/g;
+  const parts = [];
+  let lastIndex = 0;
+  let match;
 
-  let i = 0;
-  // The first part is the text before any links
-  if (parts[0]) {
-    elements.push(<div key="intro">{parts[0].trim()}</div>);
-  }
-
-  // Loop through the matched links
-  for (let j = 1; j < parts.length; j += 2) {
-    const title = parts[j];
-    const url = parts[j + 1];
-    if (title && url) {
-      elements.push(
-        <div key={j} className="my-2">
-          <a href={url} target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary/80">
-            {title}
-          </a>
-        </div>
-      );
+  while ((match = linkRegex.exec(content)) !== null) {
+    // Push the text before the match
+    if (match.index > lastIndex) {
+      parts.push(content.substring(lastIndex, match.index));
     }
+    const title = match[1];
+    const url = match[2];
+    parts.push(
+      <a href={url} target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary/80">
+        {title}
+      </a>
+    );
+    lastIndex = match.index + match[0].length;
   }
 
-  return elements.length > 0 ? elements : [content];
+  // Push any remaining text after the last match
+  if (lastIndex < content.length) {
+    parts.push(content.substring(lastIndex));
+  }
+
+  // The output needs to be wrapped in a single parent element for React.
+  // We can use a div for the main text and another for the links.
+  const introText = content.split('\n\n')[0];
+
+  return (
+    <div>
+      <div>{introText}</div>
+      <div className="flex flex-col gap-2 mt-2">
+        {parts.filter(part => typeof part !== 'string')}
+      </div>
+    </div>
+  );
 };
 
 
@@ -129,6 +141,7 @@ export default function ChatWidget() {
         question: currentInput,
         pageContent,
         mode: searchMode,
+        currentHost: window.location.hostname,
       });
       setMessages((prev) => [...prev, { role: "bot", content: answer }]);
     } catch (error) {

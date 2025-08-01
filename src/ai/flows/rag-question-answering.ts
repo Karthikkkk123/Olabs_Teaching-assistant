@@ -42,7 +42,7 @@ class LinkFinder {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    private async searchGoogle(topic: string): Promise<{ title: string; url: string; }[]> {
+    private async searchGoogle(topic: string, currentHost?: string): Promise<{ title: string; url: string; }[]> {
         try {
             const query = encodeURIComponent(topic);
             const searchUrl = `https://www.google.com/search?q=${query}&num=10`;
@@ -74,7 +74,7 @@ class LinkFinder {
                             url = decodeURIComponent(url.split('/url?q=')[1].split('&')[0]);
                         }
 
-                        if (url && url.startsWith('http') && !url.includes('google.com') && title.length > 5) {
+                        if (url && url.startsWith('http') && !url.includes('google.com') && (!currentHost || !url.includes(currentHost)) && title.length > 5) {
                             results.push({ title: title, url: url });
                             if (results.length >= 3) return false;
                         }
@@ -88,7 +88,7 @@ class LinkFinder {
         }
     }
 
-    private async searchDuckDuckGo(topic: string): Promise<{ title: string; url: string; }[]> {
+    private async searchDuckDuckGo(topic: string, currentHost?: string): Promise<{ title: string; url: string; }[]> {
         try {
             console.log(`🦆 Searching DuckDuckGo for: ${topic}`);
             const query = encodeURIComponent(topic);
@@ -103,7 +103,7 @@ class LinkFinder {
                     if (linkElement.length) {
                         const title = linkElement.text().trim();
                         const url = linkElement.attr('href');
-                        if (url && url.startsWith('http')) {
+                        if (url && url.startsWith('http') && (!currentHost || !url.includes(currentHost))) {
                             results.push({ title, url });
                             if (results.length >= 3) return false;
                         }
@@ -117,7 +117,7 @@ class LinkFinder {
         }
     }
 
-    private async searchBing(topic: string): Promise<{ title: string; url: string; }[]> {
+    private async searchBing(topic: string, currentHost?: string): Promise<{ title: string; url: string; }[]> {
         try {
             console.log(`🅱️ Searching Bing for: ${topic}`);
             const query = encodeURIComponent(topic);
@@ -133,7 +133,7 @@ class LinkFinder {
                     if (titleElement.length && linkElement.length) {
                         const title = titleElement.text().trim();
                         const url = linkElement.attr('href');
-                        if (url && url.startsWith('http')) {
+                        if (url && url.startsWith('http') && (!currentHost || !url.includes(currentHost))) {
                             results.push({ title, url });
                             if (results.length >= 3) return false;
                         }
@@ -147,16 +147,16 @@ class LinkFinder {
         }
     }
 
-    async getTopLinks(topic: string): Promise<{ title: string; url: string; }[]> {
+    async getTopLinks(topic: string, currentHost?: string): Promise<{ title: string; url: string; }[]> {
         console.log(`🔎 Finding top 3 links for: ${topic}`);
-        let results = await this.searchGoogle(topic);
+        let results = await this.searchGoogle(topic, currentHost);
         if (results.length === 0) {
             console.log('🔄 Google failed, trying DuckDuckGo...');
-            results = await this.searchDuckDuckGo(topic);
+            results = await this.searchDuckDuckGo(topic, currentHost);
         }
         if (results.length === 0) {
             console.log('🔄 DuckDuckGo failed, trying Bing...');
-            results = await this.searchBing(topic);
+            results = await this.searchBing(topic, currentHost);
         }
         return results;
     }
@@ -167,6 +167,7 @@ const RagQuestionAnsweringInputSchema = z.object({
   question: z.string().describe('The user question.'),
   pageContent: z.string().describe('The content of the current webpage.'),
   mode: z.enum(['page', 'google']).describe('The source for answering the question.'),
+  currentHost: z.string().optional().describe('The hostname of the current website to exclude from search results.'),
 });
 export type RagQuestionAnsweringInput = z.infer<typeof RagQuestionAnsweringInputSchema>;
 
@@ -212,7 +213,7 @@ const ragQuestionAnsweringFlow = ai.defineFlow(
       return output!;
     } else {
       const finder = new LinkFinder();
-      const links = await finder.getTopLinks(input.question);
+      const links = await finder.getTopLinks(input.question, input.currentHost);
       
       if (links.length === 0) {
         return { answer: "I couldn't find any results for that topic. Please try another search." };
