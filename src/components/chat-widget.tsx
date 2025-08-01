@@ -34,47 +34,32 @@ const LoadingDots = () => (
 );
 
 const renderMessageContent = (content: string) => {
-  const linkRegex = /(\d+\.\s)(.*?)\s(https?:\/\/[^\s]+)/g;
+  const linkRegex = /(?:(\d+\.\s.*)\n\s*(https?:\/\/[^\s]+))/g;
   const parts = content.split(linkRegex);
   const elements = [];
-  
+
   let i = 0;
-  while (i < parts.length) {
-    if (i > 0 && parts[i] && parts[i+1] && parts[i+2]) {
-      const number = parts[i];
-      const title = parts[i+1];
-      const url = parts[i+2];
+  // The first part is the text before any links
+  if (parts[0]) {
+    elements.push(<div key="intro">{parts[0].trim()}</div>);
+  }
+
+  // Loop through the matched links
+  for (let j = 1; j < parts.length; j += 2) {
+    const title = parts[j];
+    const url = parts[j + 1];
+    if (title && url) {
       elements.push(
-        <div key={i} className="my-2">
-          {number}
+        <div key={j} className="my-2">
           <a href={url} target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary/80">
             {title}
           </a>
         </div>
       );
-      i += 3;
-    } else if (parts[i]) {
-      // Handle the text before the first link or any remaining text
-      const textParts = parts[i].split('\n').map((line, index) => (
-        <span key={index}>{line}<br/></span>
-      ));
-      elements.push(<div key={i}>{textParts}</div>);
-      i++;
-    } else {
-      i++;
     }
   }
 
-  // A bit of a hack to remove the final <br> from the initial text part
-  if (elements.length > 0 && elements[0].props.children) {
-    const firstElementChildren = elements[0].props.children;
-    const lastChild = firstElementChildren[firstElementChildren.length - 1];
-    if (lastChild && lastChild.props.children === '') {
-      firstElementChildren.pop();
-    }
-  }
-
-  return elements;
+  return elements.length > 0 ? elements : [content];
 };
 
 
