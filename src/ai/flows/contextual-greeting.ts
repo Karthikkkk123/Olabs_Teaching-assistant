@@ -56,7 +56,13 @@ const contextualGreetingFlow = ai.defineFlow(
     outputSchema: ContextualGreetingOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
-    return output!;
+    try {
+      const {output} = await prompt(input);
+      return output!;
+    } catch (error) {
+      console.error('Error generating contextual greeting:', error);
+      // Return a fallback greeting if the AI service fails.
+      return { greeting: "Hello! How can I help you today?" };
+    }
   }
 );
