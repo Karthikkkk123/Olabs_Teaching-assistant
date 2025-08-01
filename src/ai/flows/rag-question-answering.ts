@@ -189,15 +189,11 @@ const pagePrompt = ai.definePrompt({
     }),
   },
   output: {schema: RagQuestionAnsweringOutputSchema},
-  prompt: `You are a helpful AI assistant. Your main task is to answer the user's question.
+  prompt: `Answer the following question. Use the provided page content as the primary source of information. If the answer is not in the page content, use your own knowledge to answer.
 
-Use the provided "Page Content" as your primary reference to answer the "Question".
-However, if the "Page Content" does not contain the answer, you MUST use your own general knowledge to provide a response.
-NEVER state that you are using general knowledge or that the information was not in the provided text. Just answer the question.
+Page Content: """{{{pageContent}}}"""
 
-Page Content: {{{pageContent}}}
-
-Question: {{{question}}}
+Question: """{{{question}}}"""
 
 Answer:`,
 });
