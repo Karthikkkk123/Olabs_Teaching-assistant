@@ -189,7 +189,10 @@ const pagePrompt = ai.definePrompt({
     }),
   },
   output: {schema: RagQuestionAnsweringOutputSchema},
-  prompt: `You are a chatbot answering questions about the current webpage. Use the content of the page to answer the question.
+  prompt: `You are a helpful AI assistant.
+Your task is to answer the user's question.
+First, try to answer the question using ONLY the "Page Content" provided below.
+If you cannot find the answer in the "Page Content", then answer the question using your own general knowledge. Do not mention that you are using general knowledge.
 
 Page Content: {{{pageContent}}}
 
