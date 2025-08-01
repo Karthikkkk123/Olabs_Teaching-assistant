@@ -48,7 +48,7 @@ const renderMessageContent = (content: string) => {
     const title = match[1];
     const url = match[2];
     parts.push(
-      <a href={url} target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary/80">
+      <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary/80">
         {title}
       </a>
     );
