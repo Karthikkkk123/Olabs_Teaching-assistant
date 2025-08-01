@@ -202,6 +202,21 @@ Question: {{{question}}}
 Answer:`,
 });
 
+const summaryPrompt = ai.definePrompt({
+  name: 'googleSearchSummaryPrompt',
+  input: {
+    schema: z.object({
+      question: z.string(),
+    }),
+  },
+  output: {
+    schema: z.object({
+      summary: z.string(),
+    }),
+  },
+  prompt: `Briefly summarize the following topic in one or two sentences: {{{question}}}`,
+});
+
 const ragQuestionAnsweringFlow = ai.defineFlow(
   {
     name: 'ragQuestionAnsweringFlow',
@@ -223,9 +238,13 @@ const ragQuestionAnsweringFlow = ai.defineFlow(
         return { answer: "I couldn't find any results for that topic. Please try another search." };
       }
 
+      // Generate summary
+      const { output: summaryOutput } = await summaryPrompt({ question: input.question });
+      const summary = summaryOutput?.summary || '';
+      
       const formattedLinks = links.map((link, index) => `${index + 1}. ${link.title}\n   ${link.url}`).join('\n\n');
       
-      const answer = `Here are the top 3 links I found for "${input.question}":\n\n${formattedLinks}`;
+      const answer = `${summary}\n\nHere are the top 3 links I found for "${input.question}":\n\n${formattedLinks}`;
       
       return { answer };
     }
