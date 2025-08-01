@@ -15,8 +15,10 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { Bot, Loader2, MessageSquare, Send, User, X } from "lucide-react";
+import { Bot, Globe, Loader2, MessageSquare, Send, User, X, FileText } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { Switch } from "./ui/switch";
+import { Label } from "./ui/label";
 
 type Message = {
   role: "user" | "bot";
@@ -36,6 +38,7 @@ export default function ChatWidget() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [searchMode, setSearchMode] = useState<"page" | "google">("page");
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -95,6 +98,7 @@ export default function ChatWidget() {
       const { answer } = await ragQuestionAnswering({
         question: currentInput,
         pageContent,
+        mode: searchMode,
       });
       setMessages((prev) => [...prev, { role: "bot", content: answer }]);
     } catch (error) {
@@ -119,7 +123,7 @@ export default function ChatWidget() {
   return (
     <div className="fixed bottom-4 right-4 z-50 font-body">
       {isOpen && (
-        <Card className="w-[calc(100vw-2rem)] sm:w-[380px] h-[60vh] sm:h-[540px] flex flex-col shadow-2xl rounded-2xl animate-in fade-in zoom-in-95">
+        <Card className="w-[calc(100vw-2rem)] sm:w-[380px] h-[70vh] sm:h-[600px] flex flex-col shadow-2xl rounded-2xl animate-in fade-in zoom-in-95">
           <CardHeader className="flex flex-row items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="relative">
@@ -168,13 +172,21 @@ export default function ChatWidget() {
                     )}
                     <div
                       className={cn(
-                        "max-w-[85%] rounded-2xl px-4 py-2 text-sm shadow-sm",
+                        "max-w-[85%] rounded-2xl px-4 py-2 text-sm shadow-sm prose dark:prose-invert prose-p:my-2 prose-ul:my-2 prose-li:my-0",
                         message.role === "user"
                           ? "bg-primary text-primary-foreground rounded-br-none"
                           : "bg-muted rounded-bl-none"
                       )}
                     >
-                      {message.content}
+                      {message.content.split(/(\n| \[| \d\.)/).map((part, i) =>
+                        /^(https?:\/\/)/.test(part) ? (
+                          <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="text-primary underline">
+                            {part}
+                          </a>
+                        ) : (
+                          part
+                        )
+                      )}
                     </div>
                     {message.role === "user" && (
                       <Avatar className="h-8 w-8 shrink-0">
@@ -201,7 +213,17 @@ export default function ChatWidget() {
               </div>
             </ScrollArea>
           </CardContent>
-          <CardFooter>
+          <CardFooter className="flex-col items-start gap-2">
+            <div className="flex items-center space-x-2 self-center pb-2">
+              <FileText className={`h-5 w-5 transition-colors ${searchMode === 'page' ? 'text-primary' : 'text-muted-foreground'}`} />
+              <Label htmlFor="search-mode" className="sr-only">Search Mode</Label>
+              <Switch
+                id="search-mode"
+                checked={searchMode === 'google'}
+                onCheckedChange={(checked) => setSearchMode(checked ? 'google' : 'page')}
+              />
+              <Globe className={`h-5 w-5 transition-colors ${searchMode === 'google' ? 'text-primary' : 'text-muted-foreground'}`} />
+            </div>
             <form
               onSubmit={handleSendMessage}
               className="flex w-full items-center space-x-2"
@@ -209,7 +231,7 @@ export default function ChatWidget() {
               <Input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask a question..."
+                placeholder={searchMode === 'page' ? "Ask about this page..." : "Ask Google..."}
                 autoComplete="off"
                 disabled={isLoading}
               />
