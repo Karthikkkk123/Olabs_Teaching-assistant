@@ -33,6 +33,51 @@ const LoadingDots = () => (
   </div>
 );
 
+const renderMessageContent = (content: string) => {
+  const linkRegex = /(\d+\.\s)(.*?)\s(https?:\/\/[^\s]+)/g;
+  const parts = content.split(linkRegex);
+  const elements = [];
+  
+  let i = 0;
+  while (i < parts.length) {
+    if (i > 0 && parts[i] && parts[i+1] && parts[i+2]) {
+      const number = parts[i];
+      const title = parts[i+1];
+      const url = parts[i+2];
+      elements.push(
+        <div key={i} className="my-2">
+          {number}
+          <a href={url} target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary/80">
+            {title}
+          </a>
+        </div>
+      );
+      i += 3;
+    } else if (parts[i]) {
+      // Handle the text before the first link or any remaining text
+      const textParts = parts[i].split('\n').map((line, index) => (
+        <span key={index}>{line}<br/></span>
+      ));
+      elements.push(<div key={i}>{textParts}</div>);
+      i++;
+    } else {
+      i++;
+    }
+  }
+
+  // A bit of a hack to remove the final <br> from the initial text part
+  if (elements.length > 0 && elements[0].props.children) {
+    const firstElementChildren = elements[0].props.children;
+    const lastChild = firstElementChildren[firstElementChildren.length - 1];
+    if (lastChild && lastChild.props.children === '') {
+      firstElementChildren.pop();
+    }
+  }
+
+  return elements;
+};
+
+
 export default function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -172,21 +217,16 @@ export default function ChatWidget() {
                     )}
                     <div
                       className={cn(
-                        "max-w-[85%] rounded-2xl px-4 py-2 text-sm shadow-sm prose dark:prose-invert prose-p:my-2 prose-ul:my-2 prose-li:my-0",
+                        "max-w-[85%] rounded-2xl px-4 py-2 text-sm shadow-sm",
                         message.role === "user"
                           ? "bg-primary text-primary-foreground rounded-br-none"
                           : "bg-muted rounded-bl-none"
                       )}
                     >
-                      {message.content.split(/(\n| \[| \d\.)/).map((part, i) =>
-                        /^(https?:\/\/)/.test(part) ? (
-                          <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="text-primary underline">
-                            {part}
-                          </a>
-                        ) : (
-                          part
-                        )
-                      )}
+                      {message.role === 'bot' && message.content.includes('Here are the top 3 links')
+                        ? renderMessageContent(message.content)
+                        : message.content
+                      }
                     </div>
                     {message.role === "user" && (
                       <Avatar className="h-8 w-8 shrink-0">
